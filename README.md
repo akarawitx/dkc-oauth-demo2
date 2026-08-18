@@ -31,3 +31,41 @@
 
 
 ### DKC OAuth CAS (Central Approval System)
+**Request** — `POST /api/cas/request`  for start approve request
+    `client_id`,`client_secret`,`ExternalRefID`,
+    `ApproveType` : 1 = HeadKong only (หัวหน้ากอง)
+                    2 = HeadKong and HeadSamnak (หัวหน้าสำนัก)
+    `Requester_ADUser`,
+    `CallbackURL`,
+    `MsgSubject` | optional
+    `MsgHTMLForHead` | optional for Email and HR App
+    `MsgFlexForHead` | optional for LINE
+
+    response JSON data {
+            "success": true,
+            "ADApprover": "xxx",
+            "RequestKey": "xxxx",
+            "HeadFullName": xxx xxxx",
+            "HeadShowEmail": "xxx@xxx.com",
+            "Position": "xxx",
+            "Organization": "xxxx"
+        }
+
+**Request Status** — `POST /api/cas/reqstat`
+    `client_id`,`ExternalRefID`
+    response JSON data {
+            'client_id',
+            'ExternalRefID',
+            'ApproveType',
+            'ApproveStep',
+            'Requester_ADUser',
+            'Approver_ADUser',
+            'Title',
+            'Summary',
+            'DetailJSON',
+            'Status',
+            'CallbackURL',
+            'created_at',
+            'updated_at',
+        }
+        
