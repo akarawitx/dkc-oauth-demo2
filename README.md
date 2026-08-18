@@ -68,4 +68,25 @@
             'created_at',
             'updated_at',
         }
-        
+
+### DKC OAuth Message (Central Messaging System)
+**Send Message** — `POST /api/send-message`
+    JSON Body {
+        "client_id": xx,
+        "client_secret": "aaa",
+        "app_name": "MY_APP",
+        "subject": "ขออนุมัติ",
+        "channel": | `email`, `line`, or `both`,
+        "toAd": [
+            "xx"
+        ],
+        "to" | conditional | Array of literal destinations (email addresses)
+        "email_body": HTML "สวัสดีครับ",
+        "line_text": "มีข้อความใหม่ถึงคุณ",
+        "line_flex": json
+            {
+            "type": "flex",
+            "altText": "ใบขอซื้อ WO022665 ได้รับอนุมัติ",
+            "contents": { "type": "bubble", "body": { "...": "..." } }
+            }
+    }
