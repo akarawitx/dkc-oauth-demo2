@@ -12,6 +12,7 @@
     response JSON with <access_token>,<refresh_token>
 
 **Profile** — `GET /api/user` with `Authorization: Bearer` <access_token>
+
     response JSON {
                     "id": 12,
                     "name": "somchai",
@@ -53,6 +54,7 @@
 
 **Request Status** — `POST /api/cas/reqstat`
     `client_id`,`ExternalRefID`
+
     response JSON data {
             'client_id',
             'ExternalRefID',
@@ -71,6 +73,7 @@
 
 ### DKC OAuth Message (Central Messaging System)
 **Send Message** — `POST /api/send-message`
+
     JSON Body {
         "client_id": xx,
         "client_secret": "aaa",
