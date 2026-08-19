@@ -93,3 +93,12 @@
             "contents": { "type": "bubble", "body": { "...": "..." } }
             }
     }
+
+    response JSON {
+        "status": "success",
+        "tracking_id": "6c29dfac-3073-4ed8-9915-134f82ae4ded",
+        "message": [
+            "Email sent 1",
+            "LINE sent 1"
+        ]
+    }
