@@ -33,10 +33,13 @@
 
 ### DKC OAuth CAS (Central Approval System)
 **Request** — `POST /api/cas/request`  for start approve request
+
     `client_id`,`client_secret`,`ExternalRefID`,
     `ApproveType` : 1 = HeadKong only (หัวหน้ากอง)
                     2 = HeadKong and HeadSamnak (หัวหน้าสำนัก)
     `Requester_ADUser`,
+    `Requester_KongId`,  ขออนุมัติด้วย รหัสกอง
+            Requester_ADUser กับ Requester_KongId ต้องส่งอย่างหนึ่ง
     `CallbackURL`,
     `MsgSubject` | optional
     `MsgHTMLForHead` | optional for Email and HR App
