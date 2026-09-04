@@ -78,30 +78,57 @@
 **Send Message** — `POST /api/send-message`
 
     JSON Body {
-        "client_id": xx,
+        "client_id": 12,
         "client_secret": "aaa",
         "app_name": "MY_APP",
         "subject": "ขออนุมัติ",
-        "channel": | `email`, `line`, or `both`,
-        "toAd": [
-            "xx"
-        ],
-        "to" | conditional | Array of literal destinations (email addresses)
-        "email_body": HTML "สวัสดีครับ",
-        "line_text": "มีข้อความใหม่ถึงคุณ",
-        "line_flex": json
-            {
+
+        // channel: string เดิม ("email" | "line" | "both")
+        // หรือ array ของ key ("email" | "line" | "hr_mobile")
+        // หรือ "all" / ไม่ระบุ = ส่งทุก channel ที่ระบบรู้จัก
+        "channel": ["email", "line", "hr_mobile"],
+
+        "toAd": ["xx"],                    // required ถ้าเลือก channel ใดๆ ที่ไม่ใช่ email (line, hr_mobile)
+        "to": ["someone@example.com"],     // required_without: toAd
+        "email_source": "hr",              // nullable, "hr" | "ad", default "hr"
+
+        "message": "ข้อความกลาง ใช้เป็น fallback ของทุก channel",
+        // หมายเหตุ: hr_mobile ไม่มี field override เฉพาะตัว
+        // ดังนั้นถ้าเลือกส่ง hr_mobile ต้องมี "message" เสมอ
+
+        "email_body": "<p>สวัสดีครับ</p>",   // override เฉพาะ email (แทน message)
+                                            // ** ถ้ามี HTML tag จริง และเลือกส่ง hr_mobile ด้วย
+                                            //    ระบบจะแนบลิงก์ดูเนื้อหานี้ไปใน mobile push อัตโนมัติ **
+
+        "line_text": "มีข้อความใหม่ถึงคุณ",  // override เฉพาะ line แบบ text (แทน message)
+        "line_flex": {                     // override เฉพาะ line แบบ flex (มีความสำคัญกว่า line_text ถ้าใส่มาพร้อมกัน)
             "type": "flex",
             "altText": "ใบขอซื้อ WO022665 ได้รับอนุมัติ",
             "contents": { "type": "bubble", "body": { "...": "..." } }
-            }
+        }
     }
 
-    response JSON {
+    Response 200 (success — บาง channel อาจ fail แต่ status ยังเป็น success) {
         "status": "success",
         "tracking_id": "6c29dfac-3073-4ed8-9915-134f82ae4ded",
         "message": [
             "Email sent 1",
-            "LINE sent 1"
+            "LINE sent 1",
+            "HR Mobile push failed (500)"   // ตัวอย่างกรณี HR mobile ล้มเหลว แต่ request ยัง success
         ]
+    }
+
+    Response 200 (skipped — ไม่พบผู้รับที่ส่งได้เลยในทุก channel) {
+        "status": "skipped",
+        "tracking_id": "no_valid_recipient",
+        "message": "ไม่พบช่องทางที่สามารถส่งข้อความได้สำหรับผู้รับที่ระบุ"
+    }
+
+    Response 401/422 (client_id / client_secret ไม่ถูกต้อง หรือ validate ไม่ผ่าน) {
+        "errors": { "...": ["..."] }
+    }
+
+    Response 500 (exception ที่ไม่ถูกจับใน channel) {
+        "status": "error",
+        "message": "ส่งข้อความไม่สำเร็จ <รายละเอียด exception>"
     }
