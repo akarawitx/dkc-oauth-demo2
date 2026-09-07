@@ -22,6 +22,20 @@
                     "updated_at": "2024-07-22T07:56:18.870000Z",
                     "username": "somchai",
                     "display_name": "สมชาย ใจดี",
+                    "offices": [
+                        {
+                            "position": "หัวหน้ากอง/ศูนย์",
+                            "kong": "กองบริการสารสนเทศ",
+                            "section": "ฝ่ายสารสนเทศ",
+                            "samnak": "สำนักปธ.คกก.บริหาร"
+                        },
+                        {
+                            "position": "รักษาการหัวหน้ากอง/ศูนย์",
+                            "kong": "ศูนย์อบรมคอมพิวเตอร์",
+                            "section": "ฝ่ายสารสนเทศ",
+                            "samnak": "สำนักปธ.คกก.บริหาร"
+                        }
+                    ],
                     "line_internal_id": "U1234...",
                     "line_name": "somchai",
                     "line_picture": "https://..."
