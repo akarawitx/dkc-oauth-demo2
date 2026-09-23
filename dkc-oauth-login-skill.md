@@ -141,6 +141,30 @@ it onto the user row — a single row can't represent someone who heads two unit
 as the example above (substantive head of one กอง plus acting head of another)
 shows.
 
+### UTF-8 (Thai text)
+
+`display_name` and every `offices` field are Thai. The JSON response is already
+UTF-8 and any standard parser decodes it correctly — so when Thai turns into
+`????`, `à¸ª...`, or `\u0e2b...`, the bug is never the OAuth call itself, it's a
+layer downstream that wasn't told the data is UTF-8. Check these:
+
+- **Database must be `utf8mb4`** — charset *and* collation on the column, *and*
+  the DB connection. MySQL's legacy `utf8` and a `latin1` connection are the
+  usual culprits; they store Thai as `????`, and it's unrecoverable after the
+  write, not just a display glitch. `utf8mb4` end to end is the fix.
+- **Cookies and tokens can't hold raw non-ASCII.** If `display_name` or
+  `offices` goes into a cookie or a signed token, encode it first (a JWT's
+  base64 or `encodeURIComponent` — a plain `Set-Cookie` with raw Thai is
+  dropped or corrupted by the browser).
+- **Re-serializing for logs or APIs** — a serializer that escapes non-ASCII
+  gives `\u0e2b...`; harmless but unreadable. Turn on the "don't escape unicode"
+  flag if you want legible Thai in logs (`JSON_UNESCAPED_UNICODE` in PHP, the
+  default in JS `JSON.stringify`).
+- **Your own responses** need `Content-Type: ...; charset=utf-8`, or a page that
+  echoes the name renders mojibake even when storage was fine.
+
+The per-framework references show the concrete settings.
+
 ## Security: the parts worth not getting wrong
 
 **The server treats `state` as optional — send it anyway, every time.** Without
