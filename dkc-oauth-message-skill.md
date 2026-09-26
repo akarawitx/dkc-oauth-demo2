@@ -72,6 +72,7 @@ here before adding a second pair.
 | `client_secret` | required | The matching secret. Same. |
 | `app_name` | required | Source application name, e.g. `MY_APP`. |
 | `subject` | required | Message subject. Used as the **email** subject line. |
+| `message` | required | Always include it. If the app has nothing specific to put here, fall back to the default below. |
 | `channel` | optional | Which channels to deliver on. Omitting it means **all** of them — see below, and always set it explicitly. |
 | `to` | conditional | Array of literal destinations (email addresses). Required when `toAd` is absent. |
 | `toAd` | conditional | Array of **AD usernames**; the gateway resolves address / LINE id itself. Required for the LINE channel. |
@@ -79,6 +80,26 @@ here before adding a second pair.
 | `line_text` | conditional | Plain LINE message. **Never send together with `line_flex`.** |
 | `line_flex` | conditional | A complete Flex Message object. **Never send together with `line_text`.** |
 | `email_source` | optional | `hr` or `ad`. In practice leave it out — the default is fine. |
+
+### Always send `message`
+
+Every payload carries a `message` field, including when the app has nothing
+meaningful to put in it. When there's no app-supplied value, fall back to:
+
+```
+DKC OAuth Msg <app_name>
+```
+
+Build the fallback in the client rather than leaving the caller to remember it —
+a required field that callers fill in by hand is a field that eventually arrives
+empty from the one code path nobody tested. Putting `app_name` in the fallback
+also means a message traced back later says which app sent it, instead of every
+app's messages looking alike.
+
+`TODO(MSG)`: what the gateway does with `message` isn't documented — whether it's
+a log label, an internal title, or shown to the recipient. Until that's
+confirmed, don't put anything in it that would embarrass the app if a recipient
+saw it, and don't rely on it being displayed either.
 
 ## Channels
 
@@ -265,6 +286,8 @@ redact later.
 
 Emit `// TODO(MSG): ...` rather than guessing on these:
 
+- **What `message` is used for** — log label, internal title, or shown to the
+  recipient.
 - **Whether `tracking_id` can be queried** for delivery status anywhere.
 - **Whether HTML in `email_body` is stripped for `hr_mobile`,** or rendered, or
   shown as literal tags in the app.
@@ -314,7 +337,9 @@ The payload-and-error half is the reusable part and belongs in both.
   exception at the call site.
 - Return a uniform result (`{ success, tracking_id, status, errors }`) so callers
   handle every outcome the same way.
-- Read credentials and `app_name` from config; redact them from logs.
+- Read credentials and `app_name` from config; redact the credentials from logs.
+- Default `message` inside the client so it's never absent, rather than asking
+  callers to pass it every time.
 - Don't build a per-channel API surface (`sendEmail()`, `sendLine()`) that fires
   a call each — one request with `channel: ["email","line"]` does it in one, and
   separate calls mean separate failure modes for one notification.
