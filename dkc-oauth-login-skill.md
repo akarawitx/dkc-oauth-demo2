@@ -70,6 +70,7 @@ environments don't silently get empty strings.
 | `POST` | `/oauth/token` | Server-to-server. Body: `grant_type=authorization_code`, `client_id`, `client_secret`, `redirect_uri`, `code`. Returns JSON with `access_token`, `refresh_token`, and typically `token_type` / `expires_in`. |
 | `POST` | `/oauth/token` | Also the refresh endpoint: `grant_type=refresh_token`, `client_id`, `client_secret`, `refresh_token`. Returns a fresh token pair. |
 | `GET` | `/api/user` | Send `Authorization: Bearer <access_token>` and `Accept: application/json`. Returns the signed-in user's profile. |
+| `GET` | `/profile` | The OAuth server's own profile page, where the user edits their name / LINE link / etc. **A link for the user to click, not an API** — the app just points them at it, optionally with `?redirect_url=` to bring them back. |
 | `GET` | `/logout` | Ends the user's session **at the OAuth server**. Takes `?redirect_url=` (URL-encoded) to send the user back afterwards. This is a **browser redirect, not an API call** — send the user there; don't fetch it from the backend. |
 
 `redirect_uri` must be **byte-identical** in the authorize request and the token
@@ -252,6 +253,32 @@ post-logout URL silently doesn't take.
 - **PKCE** — the flow works as a confidential client with a secret. Whether the
   server also accepts PKCE only matters for public clients (mobile/SPA), so ask
   IT Dev before building one that way.
+
+## Profile page
+
+The app owns *authentication* but not the *profile*: fields like `display_name`
+and the LINE link come from the OAuth server and can only be changed there, at
+`https://oauth.dhammakaya.network/profile`. So an app that shows the user's name
+should also give them a way to fix it — a "แก้ไขโปรไฟล์ / Edit profile" link that
+opens `{BASE}/profile`.
+
+Two things make this more than a bare `<a href>`:
+
+- **It takes `?redirect_url=` too**, same as logout — pass the app's own page so
+  the user lands back where they were after saving, instead of stranded on the
+  OAuth server. URL-encode it, and build it from app config, **never from request
+  input** (the open-redirect trap again).
+- **Changes there don't reach the app until the next login.** The app's local
+  copy of `display_name` / `offices` was snapshotted at login (step 5); editing
+  the profile page doesn't call back into the app. So after a user updates their
+  profile, they'll still see the old name until their session refreshes it. If
+  that matters, re-fetch `/api/user` when they return (the `redirect_url` landing
+  is the natural place), or just tell them to sign out and back in. Worth saying
+  in the UI next to the link so it isn't mistaken for a bug.
+
+Open it in the same tab (it's a full page, and `redirect_url` brings them back)
+rather than a popup. It is not a place to send an access token — it authenticates
+by the user's own browser session at the OAuth server, exactly like `/logout`.
 
 ## Getting credentials
 
